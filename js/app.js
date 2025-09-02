@@ -37,6 +37,7 @@ class WorkdayCalendarApp {
         this.calendarViewBtn = document.getElementById('calendar-view-btn');
         this.listView = document.getElementById('list-view');
         this.calendarViewContainer = document.getElementById('calendar-view');
+        this.saveImageBtn = document.getElementById('save-calendar-image');
         
         // Track selected courses
         this.selectedCourses = new Set();
@@ -96,6 +97,11 @@ class WorkdayCalendarApp {
         // View toggle buttons
         this.listViewBtn.addEventListener('click', () => this.switchView('list'));
         this.calendarViewBtn.addEventListener('click', () => this.switchView('calendar'));
+        
+        // Save calendar image button
+        if (this.saveImageBtn) {
+            this.saveImageBtn.addEventListener('click', () => this.saveCalendarAsImage());
+        }
         
         // Select all/none buttons
         this.selectAllBtn.addEventListener('click', () => {
@@ -680,6 +686,81 @@ class WorkdayCalendarApp {
             // Render calendar view
             if (this.courses.length > 0) {
                 this.calendarView.render(this.courses);
+            }
+        }
+    }
+    
+    async saveCalendarAsImage() {
+        try {
+            // Show loading state
+            if (this.saveImageBtn) {
+                const originalText = this.saveImageBtn.innerHTML;
+                this.saveImageBtn.innerHTML = '<span class="btn-icon">⏳</span> Generating...';
+                this.saveImageBtn.disabled = true;
+                
+                // Get the calendar container
+                const calendarContainer = document.getElementById('calendar-container');
+                
+                if (!calendarContainer || !window.html2canvas) {
+                    throw new Error('Unable to capture calendar image');
+                }
+                
+                // Configure options for better quality
+                const options = {
+                    backgroundColor: '#ffffff',
+                    scale: 2, // Higher resolution
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true,
+                    windowWidth: calendarContainer.scrollWidth,
+                    windowHeight: calendarContainer.scrollHeight,
+                    letterRendering: true, // Better text rendering
+                    imageTimeout: 0, // No timeout
+                    removeContainer: false // Keep container for better rendering
+                };
+                
+                // Generate canvas from the calendar
+                const canvas = await html2canvas(calendarContainer, options);
+                
+                // Convert to blob and download
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    
+                    // Generate filename with current date
+                    const now = new Date();
+                    const dateStr = now.toISOString().split('T')[0];
+                    link.download = `ubc-schedule-${dateStr}.png`;
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    
+                    // Restore button
+                    this.saveImageBtn.innerHTML = originalText;
+                    this.saveImageBtn.disabled = false;
+                    
+                    // Show success message
+                    const successMsg = document.createElement('div');
+                    successMsg.className = 'save-success';
+                    successMsg.textContent = '✅ Image saved successfully!';
+                    this.saveImageBtn.parentElement.appendChild(successMsg);
+                    
+                    setTimeout(() => {
+                        successMsg.remove();
+                    }, 3000);
+                }, 'image/png');
+            }
+        } catch (error) {
+            console.error('Error saving calendar image:', error);
+            this.showError('Failed to save calendar image. Please try again.');
+            
+            // Restore button
+            if (this.saveImageBtn) {
+                this.saveImageBtn.innerHTML = '<span class="btn-icon">📸</span> Save as Image';
+                this.saveImageBtn.disabled = false;
             }
         }
     }

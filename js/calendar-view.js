@@ -180,6 +180,14 @@ class CalendarView {
         const legend = this.createLegend(courses);
         termContainer.appendChild(legend);
         
+        // Add attribution watermark
+        const attribution = document.createElement('div');
+        attribution.className = 'calendar-attribution';
+        attribution.innerHTML = `
+            <span class="attribution-text">voctory.github.io/workday-cal</span>
+        `;
+        termContainer.appendChild(attribution);
+        
         this.container.appendChild(termContainer);
     }
 

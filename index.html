@@ -99,6 +99,12 @@
                 </div>
                 
                 <div id="calendar-view" class="view-container" style="display: none;">
+                    <div class="calendar-actions">
+                        <button id="save-calendar-image" class="btn btn-primary">
+                            <span class="btn-icon">📸</span>
+                            Save as Image
+                        </button>
+                    </div>
                     <div id="calendar-container" class="calendar-container"></div>
                 </div>
                 
@@ -190,6 +196,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="js/parser.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/calendar-view.js"></script>
