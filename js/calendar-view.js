@@ -52,11 +52,39 @@ class CalendarView {
         
         courses.forEach(course => {
             const term = this.determineTerm(course);
-            if (!grouped[term]) {
-                grouped[term] = [];
+            
+            // Handle Winter Full Year courses - add to both Term 1 and Term 2
+            if (term === 'Winter Full Year') {
+                // Add to Winter Term 1
+                if (!grouped['Winter Term 1']) {
+                    grouped['Winter Term 1'] = [];
+                }
+                grouped['Winter Term 1'].push({
+                    ...course,
+                    isFullYear: true,
+                    displayTerm: 'Winter Term 1 (Full Year)'
+                });
+                
+                // Add to Winter Term 2
+                if (!grouped['Winter Term 2']) {
+                    grouped['Winter Term 2'] = [];
+                }
+                grouped['Winter Term 2'].push({
+                    ...course,
+                    isFullYear: true,
+                    displayTerm: 'Winter Term 2 (Full Year)'
+                });
+            } else {
+                // Regular course - add to its term
+                if (!grouped[term]) {
+                    grouped[term] = [];
+                }
+                grouped[term].push(course);
             }
-            grouped[term].push(course);
         });
+        
+        // Remove the standalone "Winter Full Year" group if it exists
+        delete grouped['Winter Full Year'];
         
         return grouped;
     }
@@ -273,7 +301,7 @@ class CalendarView {
             
             const label = document.createElement('span');
             label.className = 'legend-label';
-            label.textContent = `${course.code} - ${course.name}`;
+            label.textContent = `${course.code} - ${course.name}${course.isFullYear ? ' (Full Year)' : ''}`;
             
             item.appendChild(colorBox);
             item.appendChild(label);

@@ -192,7 +192,6 @@ class WorkdayCalendarApp {
         
         // Separate courses by term
         const coursesByTerm = {
-            'Winter Full Year': [],
             'Winter Term 1': [],
             'Winter Term 2': [],
             'Summer Term 1': [],
@@ -203,7 +202,22 @@ class WorkdayCalendarApp {
         
         for (const [code, course] of courseMap) {
             const termInfo = this.determineTerm(course);
-            if (coursesByTerm[termInfo]) {
+            
+            // Handle Winter Full Year courses - add to both Term 1 and Term 2
+            if (termInfo === 'Winter Full Year') {
+                // Add to Term 1 with a marker
+                coursesByTerm['Winter Term 1'].push({
+                    ...course,
+                    isFullYear: true,
+                    displayName: `${course.name} (Full Year)`
+                });
+                // Add to Term 2 with a marker
+                coursesByTerm['Winter Term 2'].push({
+                    ...course,
+                    isFullYear: true,
+                    displayName: `${course.name} (Full Year)`
+                });
+            } else if (coursesByTerm[termInfo]) {
                 coursesByTerm[termInfo].push(course);
             } else {
                 coursesByTerm['Other'].push(course);
@@ -352,7 +366,7 @@ class WorkdayCalendarApp {
         
         const title = document.createElement('div');
         title.className = 'course-title';
-        title.textContent = `${course.code} - ${course.name}`;
+        title.textContent = `${course.code} - ${course.displayName || course.name}`;
         div.appendChild(title);
 
         const details = document.createElement('div');
