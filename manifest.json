@@ -1,0 +1,35 @@
+{
+  "name": "UBC Workday Schedule to Calendar Converter",
+  "short_name": "UBC Calendar",
+  "description": "Convert UBC Workday course schedules to calendar format (.ics) compatible with Google Calendar, Apple Calendar, and Outlook",
+  "start_url": "/workday-cal/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#002145",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%23002145'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='white'>📅</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%23002145'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='280' fill='white'>📅</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity", "utilities"],
+  "screenshots": [
+    {
+      "src": "/workday-cal/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "label": "UBC Workday Calendar Converter Interface"
+    }
+  ],
+  "lang": "en-CA",
+  "dir": "ltr"
+}

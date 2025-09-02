@@ -1,0 +1,44 @@
+# Robots.txt for UBC Workday Calendar Converter
+# https://voctory.github.io/workday-cal/
+
+# Allow all search engines
+User-agent: *
+Allow: /
+
+# Disallow crawling of node_modules and test directories
+Disallow: /node_modules/
+Disallow: /test-data/
+Disallow: /tests/
+
+# Sitemap location
+Sitemap: https://voctory.github.io/workday-cal/sitemap.xml
+
+# Crawl-delay for respectful crawling (in seconds)
+# Most major search engines ignore this, but it's good practice
+Crawl-delay: 1
+
+# Allow specific important bots with no restrictions
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 0
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 0
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
