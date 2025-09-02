@@ -1,0 +1,26 @@
+{
+  "name": "workday-cal",
+  "version": "1.0.0",
+  "description": "A client-side web application that converts UBC Workday course schedules (Excel format) into calendar files (.ics) compatible with Google Calendar, Apple Calendar, Outlook, and other calendar applications.",
+  "main": "test-cli.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/voctory/workday-cal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/voctory/workday-cal/issues"
+  },
+  "homepage": "https://github.com/voctory/workday-cal#readme",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}

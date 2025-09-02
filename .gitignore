@@ -1,0 +1,27 @@
+# Example files
+View_My_Courses.xlsx
+View_My_Courses.csv
+*.xlsx
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules (for testing)
+node_modules/
+package-lock.json
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.bak
+*~

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UBC Workday Schedule to Calendar Converter</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>UBC Workday Schedule to Calendar</h1>
+            <p>Convert your UBC Workday course schedule to calendar format (.ics)</p>
+        </header>
+
+        <main>
+            <div id="upload-section" class="upload-area">
+                <div class="upload-box" id="dropzone">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 15v4a2 2 0 002 2h14a2 2 0 002-2v-4M17 9l-5-5-5 5M12 14V4"/>
+                    </svg>
+                    <h2>Drop your Excel file here</h2>
+                    <p>or</p>
+                    <label for="file-input" class="file-label">
+                        Browse Files
+                        <input type="file" id="file-input" accept=".xlsx,.xls" style="display: none;">
+                    </label>
+                    <p class="file-info">Accepts .xlsx files exported from UBC Workday</p>
+                </div>
+            </div>
+
+            <div id="preview-section" class="preview-section" style="display: none;">
+                <h2>Course Schedule Preview</h2>
+                <div id="course-list" class="course-list"></div>
+                <div class="action-buttons">
+                    <button id="download-ics" class="btn btn-primary">Download Calendar (.ics)</button>
+                    <button id="reset" class="btn btn-secondary">Upload New File</button>
+                </div>
+            </div>
+
+            <div id="error-section" class="error-section" style="display: none;">
+                <div class="error-message" id="error-message"></div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Open source project • <a href="https://github.com/voctory/workday-cal" target="_blank">View on GitHub</a></p>
+            <p>Privacy: All processing happens in your browser. No data is uploaded to any server.</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="js/parser.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
