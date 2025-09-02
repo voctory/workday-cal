@@ -43,6 +43,14 @@ class WorkdayCalendarApp {
             }
         });
 
+        // Make entire dropzone clickable
+        this.dropzone.addEventListener('click', (e) => {
+            // Don't trigger if clicking on the file input label itself
+            if (e.target.tagName !== 'LABEL' && !e.target.closest('.file-label')) {
+                this.fileInput.click();
+            }
+        });
+
         // Drag and drop events
         this.dropzone.addEventListener('dragover', (e) => {
             e.preventDefault();
