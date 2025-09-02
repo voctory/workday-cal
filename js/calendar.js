@@ -73,7 +73,8 @@ class CalendarGenerator {
         if (course.delivery) lines.push(`Delivery: ${course.delivery}`);
         if (course.status) lines.push(`Status: ${course.status}`);
         
-        return lines.join('\\n');
+        // Use actual newlines, they'll be escaped properly by escapeText()
+        return lines.join('\n');
     }
 
     /**
