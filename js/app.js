@@ -147,7 +147,8 @@ class WorkdayCalendarApp {
                 this.showPreview();
             } catch (error) {
                 console.error('Error processing file:', error);
-                this.showError(`Error processing file: ${error.message}`);
+                // Show the error message directly without wrapping
+                this.showError(error.message);
             }
         };
 
@@ -406,7 +407,8 @@ class WorkdayCalendarApp {
     }
 
     showError(message) {
-        this.errorMessage.textContent = message;
+        // Use innerText to preserve line breaks in error messages
+        this.errorMessage.innerText = message;
         this.errorSection.style.display = 'block';
     }
 

@@ -71,10 +71,17 @@ class WorkdayParser {
             // If default header row doesn't validate, search for headers
             if (!this.validateHeaders(headers)) {
                 console.log('Default header row failed, searching for headers...');
+                console.log('Headers at row 6:', headers ? headers.slice(0, 10) : 'undefined');
+                
                 for (let i = 0; i < Math.min(20, jsonData.length); i++) {
                     const testHeaders = jsonData[i];
+                    if (testHeaders && testHeaders.length > 0) {
+                        const headerPreview = testHeaders.slice(0, 5).filter(h => h).join(', ');
+                        console.log(`Row ${i + 1}: ${headerPreview}`);
+                    }
+                    
                     if (this.validateHeaders(testHeaders)) {
-                        console.log(`Found headers at row ${i + 1}`);
+                        console.log(`✓ Found valid headers at row ${i + 1}`);
                         actualHeaderRow = i;
                         headers = testHeaders;
                         this.headerRow = i + 1;
@@ -82,6 +89,8 @@ class WorkdayParser {
                         break;
                     }
                 }
+            } else {
+                console.log('✓ Headers validated at default row 6');
             }
 
             if (jsonData.length < this.dataStartRow) {
@@ -168,17 +177,25 @@ class WorkdayParser {
                 // If no course found in column 1, scan other columns for course codes
                 if (!courseFound) {
                     for (let col = 0; col < Math.min(10, row.length); col++) {
-                        if (row[col] && String(row[col]).includes('_V ')) {
-                            courseRowsFound++;
-                            // Create a adjusted row with course data in expected position
-                            const adjustedRow = [...row];
-                            if (col !== 1) {
-                                adjustedRow[1] = row[col];
-                            }
-                            const course = this.parseCourseRow(adjustedRow, headers, currentStudent);
-                            if (course && course.code) {
-                                courses.push(course);
-                                break;
+                        if (row[col]) {
+                            const cellValue = String(row[col]);
+                            // Look for various course code patterns
+                            if (cellValue.includes('_V ') || 
+                                cellValue.match(/^[A-Z]{2,4}\s+\d{3}/) ||  // e.g., "CPSC 110"
+                                cellValue.match(/^[A-Z]{2,4}_[VG]\s+\d{3}/)) {  // e.g., "CPSC_V 110" or "CPSC_G 110"
+                                
+                                courseRowsFound++;
+                                // Create a adjusted row with course data in expected position
+                                const adjustedRow = [...row];
+                                if (col !== 1) {
+                                    adjustedRow[1] = row[col];
+                                }
+                                const course = this.parseCourseRow(adjustedRow, headers, currentStudent);
+                                if (course && course.code) {
+                                    courses.push(course);
+                                    courseFound = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -188,7 +205,8 @@ class WorkdayParser {
             return courses;
         } catch (error) {
             console.error('Error parsing Excel:', error);
-            throw new Error(`Failed to parse file: ${error.message}`);
+            // Pass through the original error message without wrapping
+            throw error;
         }
     }
 
@@ -294,13 +312,30 @@ class WorkdayParser {
             // Ensure it's a string
             const courseStr = String(courseListing).trim();
             
-            // Match patterns like "CPSC_V 430" or "APSC_V 486"
+            // Match patterns like "CPSC_V 430" or "APSC_V 486" or "CPSC 430"
             // Make the regex more flexible for potential whitespace/encoding issues
-            const courseMatch = courseStr.match(/([A-Z]+)_V\s+(\d+)\s*[-–—]\s*(.+)/);
+            let courseMatch = courseStr.match(/([A-Z]+)_[VG]\s+(\d+[A-Z]?)\s*[-–—]\s*(.+)/);
+            if (!courseMatch) {
+                // Try alternate format without underscore
+                courseMatch = courseStr.match(/([A-Z]+)\s+(\d+[A-Z]?)\s*[-–—]\s*(.+)/);
+            }
+            if (!courseMatch) {
+                // Try format with colon or other separator
+                courseMatch = courseStr.match(/([A-Z]+)\s*_?[VG]?\s*(\d+[A-Z]?)\s*[:–—]\s*(.+)/);
+            }
+            
             if (courseMatch) {
                 course.code = `${courseMatch[1]} ${courseMatch[2]}`;  // "CPSC 430"
                 course.name = courseMatch[3].trim();
             } else {
+                // If no pattern matches, try to extract whatever we can
+                console.log('Could not parse course:', courseStr);
+                // Use the whole string as course code if we can't parse it
+                const parts = courseStr.split(/[-–—:]/);
+                if (parts.length >= 2) {
+                    course.code = parts[0].trim();
+                    course.name = parts.slice(1).join(' ').trim();
+                }
             }
         }
 
