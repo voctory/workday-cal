@@ -162,18 +162,138 @@ class WorkdayCalendarApp {
                 courseMap.set(course.code, course);
             }
         }
-
-        // Display each unique course
-        let index = 0;
+        
+        // Separate courses by term
+        const coursesByTerm = {
+            'Winter Full Year': [],
+            'Winter Term 1': [],
+            'Winter Term 2': [],
+            'Summer Term 1': [],
+            'Summer Term 2': [],
+            'Summer Full Term': [],
+            'Other': []
+        };
+        
         for (const [code, course] of courseMap) {
-            const courseElement = this.createCourseElement(course, index);
-            this.courseList.appendChild(courseElement);
-            // Select all courses by default
-            this.selectedCourses.add(index);
-            index++;
+            const termInfo = this.determineTerm(course);
+            if (coursesByTerm[termInfo]) {
+                coursesByTerm[termInfo].push(course);
+            } else {
+                coursesByTerm['Other'].push(course);
+            }
+        }
+        
+        // Define term display information
+        const termDisplayInfo = {
+            'Winter Full Year': { emoji: '🎓', dates: 'Sept - Apr' },
+            'Winter Term 1': { emoji: '🍂', dates: 'Sept - Dec' },
+            'Winter Term 2': { emoji: '❄️', dates: 'Jan - Apr' },
+            'Summer Term 1': { emoji: '☀️', dates: 'May - June' },
+            'Summer Term 2': { emoji: '🌻', dates: 'July - Aug' },
+            'Summer Full Term': { emoji: '🌞', dates: 'May - Aug' },
+            'Other': { emoji: '📚', dates: '' }
+        };
+        
+        // Display courses by term
+        let index = 0;
+        for (const [termName, courses] of Object.entries(coursesByTerm)) {
+            if (courses.length === 0) continue;
+            
+            const termInfo = termDisplayInfo[termName];
+            const headerText = termInfo.dates ? 
+                `${termInfo.emoji} ${termName} (${termInfo.dates})` : 
+                `${termInfo.emoji} ${termName}`;
+            
+            const termHeader = document.createElement('div');
+            termHeader.className = 'term-header';
+            termHeader.innerHTML = `<h3>${headerText}</h3><span class="term-count">${courses.length} course${courses.length !== 1 ? 's' : ''}</span>`;
+            this.courseList.appendChild(termHeader);
+            
+            const termContainer = document.createElement('div');
+            termContainer.className = 'term-container';
+            
+            for (const course of courses) {
+                const courseElement = this.createCourseElement(course, index);
+                termContainer.appendChild(courseElement);
+                this.selectedCourses.add(index);
+                index++;
+            }
+            this.courseList.appendChild(termContainer);
         }
         
         this.updateSelectionCount();
+    }
+    
+    determineTerm(course) {
+        // Check the student info for term information first
+        if (course.student && course.student.term) {
+            const termInfo = course.student.term.toLowerCase();
+            
+            // Full year
+            if (termInfo.includes('full year') || termInfo.includes('year long')) return 'Winter Full Year';
+            
+            // Winter terms
+            if (termInfo.includes('winter') && termInfo.includes('term 1')) return 'Winter Term 1';
+            if (termInfo.includes('winter') && termInfo.includes('term 2')) return 'Winter Term 2';
+            
+            // Summer terms
+            if (termInfo.includes('summer') && termInfo.includes('term 1')) return 'Summer Term 1';
+            if (termInfo.includes('summer') && termInfo.includes('term 2')) return 'Summer Term 2';
+            
+            // Generic terms (fallback)
+            if (termInfo.includes('term 1')) return 'Winter Term 1';
+            if (termInfo.includes('term 2')) return 'Winter Term 2';
+        }
+        
+        // Check based on start/end dates
+        if (course.startDate && course.endDate) {
+            const startMonth = parseInt(course.startDate.split('-')[1]);
+            const endMonth = parseInt(course.endDate.split('-')[1]);
+            
+            // Winter Full Year: Sept-Apr (starts in 9-10, ends in 3-4)
+            if (startMonth >= 9 && endMonth >= 3 && endMonth <= 4) {
+                return 'Winter Full Year';
+            }
+            // Winter Term 1: Sept-Dec (months 9-12)
+            else if (startMonth >= 9 && endMonth <= 12) {
+                return 'Winter Term 1';
+            }
+            // Winter Term 2: Jan-Apr (months 1-4)
+            else if (startMonth >= 1 && startMonth <= 4 && endMonth <= 4) {
+                return 'Winter Term 2';
+            }
+            // Summer Term 1: May-June (month 5-6)
+            else if (startMonth >= 5 && startMonth <= 6 && endMonth <= 6) {
+                return 'Summer Term 1';
+            }
+            // Summer Term 2: July-Aug (month 7-8)
+            else if (startMonth >= 7 && startMonth <= 8) {
+                return 'Summer Term 2';
+            }
+            // Full Summer: May-Aug (months 5-8, spanning both terms)
+            else if (startMonth >= 5 && endMonth >= 7) {
+                return 'Summer Full Term';
+            }
+        }
+        
+        // Check meeting patterns for date ranges
+        if (course.meetings && course.meetings.length > 0) {
+            const firstMeeting = course.meetings[0];
+            if (firstMeeting.startDate && firstMeeting.endDate) {
+                const startMonth = parseInt(firstMeeting.startDate.split('-')[1]);
+                const endMonth = parseInt(firstMeeting.endDate.split('-')[1]);
+                
+                // Winter Full Year
+                if (startMonth >= 9 && endMonth >= 3 && endMonth <= 4) return 'Winter Full Year';
+                if (startMonth >= 9 && endMonth <= 12) return 'Winter Term 1';
+                if (startMonth >= 1 && startMonth <= 4 && endMonth <= 4) return 'Winter Term 2';
+                if (startMonth >= 5 && startMonth <= 6 && endMonth <= 6) return 'Summer Term 1';
+                if (startMonth >= 7 && startMonth <= 8) return 'Summer Term 2';
+                if (startMonth >= 5 && endMonth >= 7) return 'Summer Full Term';
+            }
+        }
+        
+        return 'Other';
     }
 
     createCourseElement(course, index) {
@@ -294,21 +414,29 @@ class WorkdayCalendarApp {
     }
     
     selectAllCourses() {
-        const checkboxes = this.courseList.querySelectorAll('.course-checkbox');
-        checkboxes.forEach((checkbox, index) => {
-            checkbox.checked = true;
-            this.selectedCourses.add(index);
-            checkbox.closest('.course-item').classList.remove('unchecked');
+        const courseItems = this.courseList.querySelectorAll('.course-item');
+        courseItems.forEach((item) => {
+            const checkbox = item.querySelector('.course-checkbox');
+            const index = parseInt(item.dataset.index);
+            if (checkbox && !isNaN(index)) {
+                checkbox.checked = true;
+                this.selectedCourses.add(index);
+                item.classList.remove('unchecked');
+            }
         });
         this.updateSelectionCount();
     }
     
     selectNoCourses() {
-        const checkboxes = this.courseList.querySelectorAll('.course-checkbox');
-        checkboxes.forEach((checkbox, index) => {
-            checkbox.checked = false;
-            this.selectedCourses.delete(index);
-            checkbox.closest('.course-item').classList.add('unchecked');
+        const courseItems = this.courseList.querySelectorAll('.course-item');
+        courseItems.forEach((item) => {
+            const checkbox = item.querySelector('.course-checkbox');
+            const index = parseInt(item.dataset.index);
+            if (checkbox && !isNaN(index)) {
+                checkbox.checked = false;
+                this.selectedCourses.delete(index);
+                item.classList.add('unchecked');
+            }
         });
         this.updateSelectionCount();
     }

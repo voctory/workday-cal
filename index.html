@@ -93,34 +93,28 @@
             </div>
             
             <div class="tutorials-section">
-                <h2>📚 Step-by-Step Tutorials</h2>
-                <div class="tutorial-tabs">
-                    <button class="tab-button active" onclick="showTutorial('workday')">
-                        Export from Workday
-                    </button>
-                    <button class="tab-button" onclick="showTutorial('google')">
-                        Import to Google Calendar
-                    </button>
-                </div>
+                <button class="tutorial-toggle" onclick="toggleTutorials()">
+                    <span id="tutorial-toggle-icon">▶</span>
+                    <span>📚 Step-by-Step Tutorials</span>
+                </button>
                 
-                <div id="workday-tutorial" class="tutorial-content active">
-                    <iframe 
-                        src="https://scribehow.com/embed/Accessing_and_Downloading_Course_Information_in_Workday__zWMAv7lvRpC12h39VmG4Gw" 
-                        width="100%" 
-                        height="640" 
-                        allowfullscreen 
-                        frameborder="0">
-                    </iframe>
-                </div>
-                
-                <div id="google-tutorial" class="tutorial-content" style="display: none;">
-                    <iframe 
-                        src="https://scribehow.com/embed/Importing_UBC_Winter_2025_Calendar_into_Google_Calendar__HS7J0rjeT-SA44Z8EwcknQ" 
-                        width="100%" 
-                        height="640" 
-                        allowfullscreen 
-                        frameborder="0">
-                    </iframe>
+                <div id="tutorials-container" class="tutorials-container" style="display: none;">
+                    <div class="tutorial-tabs">
+                        <button class="tab-button active" onclick="showTutorial('workday')">
+                            Export from Workday
+                        </button>
+                        <button class="tab-button" onclick="showTutorial('google')">
+                            Import to Google Calendar
+                        </button>
+                    </div>
+                    
+                    <div id="workday-tutorial" class="tutorial-content active">
+                        <!-- iframe will be loaded dynamically -->
+                    </div>
+                    
+                    <div id="google-tutorial" class="tutorial-content" style="display: none;">
+                        <!-- iframe will be loaded dynamically -->
+                    </div>
                 </div>
             </div>
         </main>
@@ -137,6 +131,56 @@
     <script src="js/app.js"></script>
     
     <script>
+        let tutorialsLoaded = false;
+        
+        function toggleTutorials() {
+            const container = document.getElementById('tutorials-container');
+            const icon = document.getElementById('tutorial-toggle-icon');
+            
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                icon.textContent = '▼';
+                
+                // Load iframes on first open
+                if (!tutorialsLoaded) {
+                    loadTutorialIframes();
+                    tutorialsLoaded = true;
+                }
+            } else {
+                container.style.display = 'none';
+                icon.textContent = '▶';
+            }
+        }
+        
+        function loadTutorialIframes() {
+            const workdayTutorial = document.getElementById('workday-tutorial');
+            const googleTutorial = document.getElementById('google-tutorial');
+            
+            if (workdayTutorial && !workdayTutorial.querySelector('iframe')) {
+                workdayTutorial.innerHTML = `
+                    <iframe 
+                        src="https://scribehow.com/embed/Accessing_and_Downloading_Course_Information_in_Workday__zWMAv7lvRpC12h39VmG4Gw" 
+                        width="100%" 
+                        height="640" 
+                        allowfullscreen 
+                        frameborder="0">
+                    </iframe>
+                `;
+            }
+            
+            if (googleTutorial && !googleTutorial.querySelector('iframe')) {
+                googleTutorial.innerHTML = `
+                    <iframe 
+                        src="https://scribehow.com/embed/Importing_UBC_Winter_2025_Calendar_into_Google_Calendar__HS7J0rjeT-SA44Z8EwcknQ" 
+                        width="100%" 
+                        height="640" 
+                        allowfullscreen 
+                        frameborder="0">
+                    </iframe>
+                `;
+            }
+        }
+        
         function showTutorial(type) {
             // Hide all tutorials
             document.querySelectorAll('.tutorial-content').forEach(content => {
