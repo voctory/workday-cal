@@ -364,6 +364,10 @@ header p {
 
 .error-message {
     color: var(--error-color);
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 0.9em;
+    line-height: 1.6;
 }
 
 .tutorials-section {

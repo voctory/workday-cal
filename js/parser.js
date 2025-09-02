@@ -64,15 +64,64 @@ class WorkdayParser {
             }
 
 
+            // Try to auto-detect header row if default doesn't work
+            let actualHeaderRow = this.headerRow - 1;
+            let headers = jsonData[actualHeaderRow];
+            
+            // If default header row doesn't validate, search for headers
+            if (!this.validateHeaders(headers)) {
+                console.log('Default header row failed, searching for headers...');
+                for (let i = 0; i < Math.min(20, jsonData.length); i++) {
+                    const testHeaders = jsonData[i];
+                    if (this.validateHeaders(testHeaders)) {
+                        console.log(`Found headers at row ${i + 1}`);
+                        actualHeaderRow = i;
+                        headers = testHeaders;
+                        this.headerRow = i + 1;
+                        this.dataStartRow = i + 2;
+                        break;
+                    }
+                }
+            }
+
             if (jsonData.length < this.dataStartRow) {
                 throw new Error('Invalid file format: insufficient data rows');
             }
-
-            // Extract headers
-            const headers = jsonData[this.headerRow - 1]; // Convert to 0-indexed
             
             if (!this.validateHeaders(headers)) {
-                throw new Error('Invalid file format: expected UBC Workday course schedule format');
+                // Provide detailed error message with what was found
+                const headerPreview = headers ? headers.slice(0, 10).filter(h => h).join(', ') : 'No headers found';
+                
+                // Also show a sample of data to help diagnose
+                let dataSample = '';
+                if (jsonData.length > 0) {
+                    dataSample = '\n\nFirst few rows of data:\n';
+                    for (let i = 0; i < Math.min(3, jsonData.length); i++) {
+                        const row = jsonData[i];
+                        if (row && row.length > 0) {
+                            dataSample += `Row ${i + 1}: ${row.slice(0, 5).map(c => c || '[empty]').join(' | ')}\n`;
+                        }
+                    }
+                }
+                
+                const errorDetails = [
+                    'Invalid file format: expected UBC Workday course schedule format',
+                    '',
+                    'Expected format:',
+                    '- Excel file exported from UBC Workday',
+                    '- Headers should include: Drop, Credits, Grading',
+                    '- Course data should follow the headers',
+                    '',
+                    'Found at row ' + this.headerRow + ': ' + headerPreview,
+                    dataSample,
+                    'Troubleshooting:',
+                    '1. Ensure file is exported from UBC Workday "View My Courses"',
+                    '2. Use the "Export to Excel" button',
+                    '3. Don\'t modify the file before uploading',
+                    '4. If the problem persists, report an issue on GitHub with the error details'
+                ].join('\n');
+                
+                throw new Error(errorDetails);
             }
 
             // Extract courses
@@ -100,15 +149,38 @@ class WorkdayParser {
 
                 
                 // Parse course if we have valid data in Drop column (index 1)
+                // Also try other columns if column 1 doesn't have course data
+                let courseFound = false;
+                
+                // Try column 1 first (standard format)
                 if (row[1]) {
-                    // Check if it looks like course data
                     const cellValue = String(row[1]);
                     if (cellValue.includes('_V ')) {
                         courseRowsFound++;
                         const course = this.parseCourseRow(row, headers, currentStudent);
                         if (course && course.code) {
                             courses.push(course);
+                            courseFound = true;
+                        }
+                    }
+                }
+                
+                // If no course found in column 1, scan other columns for course codes
+                if (!courseFound) {
+                    for (let col = 0; col < Math.min(10, row.length); col++) {
+                        if (row[col] && String(row[col]).includes('_V ')) {
+                            courseRowsFound++;
+                            // Create a adjusted row with course data in expected position
+                            const adjustedRow = [...row];
+                            if (col !== 1) {
+                                adjustedRow[1] = row[col];
                             }
+                            const course = this.parseCourseRow(adjustedRow, headers, currentStudent);
+                            if (course && course.code) {
+                                courses.push(course);
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -127,21 +199,39 @@ class WorkdayParser {
         if (!headers || headers.length < 5) return false;
         
         // The key headers we absolutely need to identify this as a Workday schedule
-        const criticalHeaders = ['Drop', 'Credits', 'Grading'];
+        // Try multiple possible header combinations for flexibility
+        const possibleHeaderSets = [
+            ['Drop', 'Credits', 'Grading'],  // Standard format
+            ['drop', 'credits', 'grading'],  // Lowercase
+            ['Course', 'Credits', 'Grade'],  // Alternative format
+            ['Subject', 'Credit', 'Grade']   // Another alternative
+        ];
         
         // Convert headers to string and check
         const headerString = headers.filter(h => h).join(' ').toLowerCase();
         
-        // Check if we have the critical headers that identify a Workday schedule
-        const hasCriticalHeaders = criticalHeaders.every(header => 
-            headerString.includes(header.toLowerCase())
-        );
-        
-        if (!hasCriticalHeaders) {
-            return false;
+        // Check if we have any of the possible header sets
+        for (const headerSet of possibleHeaderSets) {
+            const hasCriticalHeaders = headerSet.every(header => 
+                headerString.includes(header.toLowerCase())
+            );
+            
+            if (hasCriticalHeaders) {
+                return true;
+            }
         }
         
-        return true;
+        // Also check if it looks like course data even without exact headers
+        // Look for patterns like course codes (e.g., "CPSC_V 110")
+        const hasCourseLikeHeaders = headers.some(h => 
+            h && (h.includes('Course') || h.includes('Subject') || h.includes('Class'))
+        );
+        
+        if (hasCourseLikeHeaders) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**
