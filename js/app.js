@@ -22,6 +22,16 @@ class WorkdayCalendarApp {
         this.courseList = document.getElementById('course-list');
         this.downloadBtn = document.getElementById('download-ics');
         this.resetBtn = document.getElementById('reset');
+        this.selectAllBtn = document.getElementById('select-all');
+        this.selectNoneBtn = document.getElementById('select-none');
+        this.selectionCount = document.getElementById('selection-count');
+        this.googleBtn = document.getElementById('google-calendar');
+        this.appleBtn = document.getElementById('apple-calendar');
+        this.outlookBtn = document.getElementById('outlook-web');
+        this.copyBtn = document.getElementById('copy-events');
+        
+        // Track selected courses
+        this.selectedCourses = new Set();
     }
 
     initializeEventListeners() {
@@ -65,6 +75,32 @@ class WorkdayCalendarApp {
         // Reset button
         this.resetBtn.addEventListener('click', () => {
             this.reset();
+        });
+        
+        // Select all/none buttons
+        this.selectAllBtn.addEventListener('click', () => {
+            this.selectAllCourses();
+        });
+        
+        this.selectNoneBtn.addEventListener('click', () => {
+            this.selectNoCourses();
+        });
+        
+        // Export buttons
+        this.googleBtn.addEventListener('click', () => {
+            this.exportToGoogle();
+        });
+        
+        this.appleBtn.addEventListener('click', () => {
+            this.exportToApple();
+        });
+        
+        this.outlookBtn.addEventListener('click', () => {
+            this.exportToOutlook();
+        });
+        
+        this.copyBtn.addEventListener('click', () => {
+            this.copyEventsAsText();
         });
 
         // Prevent default drag behaviors on document
@@ -116,6 +152,7 @@ class WorkdayCalendarApp {
 
     displayCourses() {
         this.courseList.innerHTML = '';
+        this.selectedCourses.clear();
         
         // Group courses by code for better display
         const courseMap = new Map();
@@ -127,15 +164,39 @@ class WorkdayCalendarApp {
         }
 
         // Display each unique course
+        let index = 0;
         for (const [code, course] of courseMap) {
-            const courseElement = this.createCourseElement(course);
+            const courseElement = this.createCourseElement(course, index);
             this.courseList.appendChild(courseElement);
+            // Select all courses by default
+            this.selectedCourses.add(index);
+            index++;
         }
+        
+        this.updateSelectionCount();
     }
 
-    createCourseElement(course) {
+    createCourseElement(course, index) {
         const div = document.createElement('div');
         div.className = 'course-item';
+        div.dataset.index = index;
+        
+        // Add checkbox
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'course-checkbox';
+        checkbox.checked = true;
+        checkbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                this.selectedCourses.add(index);
+                div.classList.remove('unchecked');
+            } else {
+                this.selectedCourses.delete(index);
+                div.classList.add('unchecked');
+            }
+            this.updateSelectionCount();
+        });
+        div.appendChild(checkbox);
         
         const title = document.createElement('div');
         title.className = 'course-title';
@@ -226,9 +287,61 @@ class WorkdayCalendarApp {
         this.errorMessage.textContent = '';
     }
 
+    updateSelectionCount() {
+        const total = this.courseList.querySelectorAll('.course-item').length;
+        const selected = this.selectedCourses.size;
+        this.selectionCount.textContent = `${selected} of ${total} courses selected`;
+    }
+    
+    selectAllCourses() {
+        const checkboxes = this.courseList.querySelectorAll('.course-checkbox');
+        checkboxes.forEach((checkbox, index) => {
+            checkbox.checked = true;
+            this.selectedCourses.add(index);
+            checkbox.closest('.course-item').classList.remove('unchecked');
+        });
+        this.updateSelectionCount();
+    }
+    
+    selectNoCourses() {
+        const checkboxes = this.courseList.querySelectorAll('.course-checkbox');
+        checkboxes.forEach((checkbox, index) => {
+            checkbox.checked = false;
+            this.selectedCourses.delete(index);
+            checkbox.closest('.course-item').classList.add('unchecked');
+        });
+        this.updateSelectionCount();
+    }
+    
+    getSelectedCourses() {
+        // Get only selected courses
+        const courseMap = new Map();
+        for (const course of this.courses) {
+            if (!courseMap.has(course.code)) {
+                courseMap.set(course.code, course);
+            }
+        }
+        
+        const selectedCoursesList = [];
+        let index = 0;
+        for (const [code, course] of courseMap) {
+            if (this.selectedCourses.has(index)) {
+                selectedCoursesList.push(course);
+            }
+            index++;
+        }
+        return selectedCoursesList;
+    }
+
     downloadCalendar() {
         try {
-            const icsContent = this.calendar.generateICS(this.courses);
+            const selectedCourses = this.getSelectedCourses();
+            if (selectedCourses.length === 0) {
+                this.showError('Please select at least one course to export');
+                return;
+            }
+            
+            const icsContent = this.calendar.generateICS(selectedCourses);
             
             // Generate filename with current date
             const now = new Date();
@@ -241,9 +354,154 @@ class WorkdayCalendarApp {
             this.showError(`Error generating calendar: ${error.message}`);
         }
     }
+    
+    exportToGoogle() {
+        try {
+            const selectedCourses = this.getSelectedCourses();
+            if (selectedCourses.length === 0) {
+                this.showError('Please select at least one course to export');
+                return;
+            }
+            
+            // Generate ICS file
+            const icsContent = this.calendar.generateICS(selectedCourses);
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            
+            // Google Calendar import URL
+            window.open('https://calendar.google.com/calendar/r/settings/export', '_blank');
+            
+            // Also download the file for manual import
+            this.downloadCalendar();
+            
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch (error) {
+            console.error('Error exporting to Google:', error);
+            this.showError(`Error exporting to Google Calendar: ${error.message}`);
+        }
+    }
+    
+    exportToApple() {
+        try {
+            const selectedCourses = this.getSelectedCourses();
+            if (selectedCourses.length === 0) {
+                this.showError('Please select at least one course to export');
+                return;
+            }
+            
+            // Generate ICS content
+            const icsContent = this.calendar.generateICS(selectedCourses);
+            
+            // Create a data URL for the ICS content
+            const base64 = btoa(unescape(encodeURIComponent(icsContent)));
+            const dataUrl = `data:text/calendar;base64,${base64}`;
+            
+            // Try to open directly with webcal:// protocol (works on macOS/iOS)
+            // This will prompt to open in Calendar app
+            const webcalUrl = dataUrl.replace('data:', 'webcal://');
+            
+            // Create a temporary link and click it
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = `ubc-schedule-${new Date().toISOString().split('T')[0]}.ics`;
+            
+            // Check if we're on an Apple device
+            const isApple = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+            
+            if (isApple) {
+                // On Apple devices, just download and the OS will handle it
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // The OS should automatically prompt to add to Calendar
+            } else {
+                // On non-Apple devices, download with instructions
+                a.click();
+                setTimeout(() => {
+                    alert('Calendar file downloaded. If you\'re using iCloud Calendar on Windows, you can import this file at icloud.com/calendar');
+                }, 500);
+            }
+        } catch (error) {
+            console.error('Error exporting to Apple Calendar:', error);
+            this.showError(`Error exporting to Apple Calendar: ${error.message}`);
+        }
+    }
+    
+    exportToOutlook() {
+        try {
+            const selectedCourses = this.getSelectedCourses();
+            if (selectedCourses.length === 0) {
+                this.showError('Please select at least one course to export');
+                return;
+            }
+            
+            // Open Outlook.com calendar import page
+            window.open('https://outlook.live.com/calendar/0/addevent', '_blank');
+            
+            // Also download the file for manual import
+            this.downloadCalendar();
+        } catch (error) {
+            console.error('Error exporting to Outlook:', error);
+            this.showError(`Error exporting to Outlook: ${error.message}`);
+        }
+    }
+    
+    copyEventsAsText() {
+        try {
+            const selectedCourses = this.getSelectedCourses();
+            if (selectedCourses.length === 0) {
+                this.showError('Please select at least one course to export');
+                return;
+            }
+            
+            let text = 'UBC Course Schedule\n';
+            text += '===================\n\n';
+            
+            for (const course of selectedCourses) {
+                text += `${course.code} - ${course.name}\n`;
+                if (course.instructor) text += `Instructor: ${course.instructor}\n`;
+                if (course.credits) text += `Credits: ${course.credits}\n`;
+                
+                if (course.meetings && course.meetings.length > 0) {
+                    for (const meeting of course.meetings) {
+                        const days = meeting.days ? meeting.days.map(d => {
+                            const dayNames = { 'MO': 'Mon', 'TU': 'Tue', 'WE': 'Wed', 'TH': 'Thu', 'FR': 'Fri' };
+                            return dayNames[d] || d;
+                        }).join(', ') : '';
+                        
+                        text += `Schedule: ${days} ${this.formatTime(meeting.startTime)}-${this.formatTime(meeting.endTime)}\n`;
+                        text += `Period: ${meeting.startDate} to ${meeting.endDate}\n`;
+                        if (meeting.location) text += `Location: ${meeting.location}\n`;
+                    }
+                }
+                text += '\n';
+            }
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                // Show success message
+                const btn = document.getElementById('copy-events');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="btn-icon">✓</span> Copied!';
+                btn.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('btn-success');
+                }, 2000);
+            }).catch(err => {
+                this.showError('Failed to copy to clipboard');
+            });
+        } catch (error) {
+            console.error('Error copying events:', error);
+            this.showError(`Error copying events: ${error.message}`);
+        }
+    }
 
     reset() {
         this.courses = [];
+        this.selectedCourses.clear();
         this.fileInput.value = '';
         this.hidePreview();
         this.hideError();

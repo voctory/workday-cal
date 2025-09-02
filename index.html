@@ -31,10 +31,60 @@
 
             <div id="preview-section" class="preview-section" style="display: none;">
                 <h2>Course Schedule Preview</h2>
+                <div class="selection-controls">
+                    <button id="select-all" class="btn btn-small">Select All</button>
+                    <button id="select-none" class="btn btn-small">Select None</button>
+                    <span id="selection-count" class="selection-count"></span>
+                </div>
                 <div id="course-list" class="course-list"></div>
-                <div class="action-buttons">
-                    <button id="download-ics" class="btn btn-primary">Download Calendar (.ics)</button>
-                    <button id="reset" class="btn btn-secondary">Upload New File</button>
+                
+                <div class="export-section">
+                    <h3>Export Options</h3>
+                    <div class="export-options">
+                        <div class="export-option">
+                            <button id="download-ics" class="btn btn-primary">
+                                <span class="btn-icon">📥</span>
+                                Download .ics File
+                            </button>
+                            <p class="option-desc">Download calendar file for importing into any calendar app</p>
+                        </div>
+                        
+                        <div class="export-option">
+                            <button id="google-calendar" class="btn btn-google">
+                                <span class="btn-icon">📅</span>
+                                Add to Google Calendar
+                            </button>
+                            <p class="option-desc">Open Google Calendar to import events directly</p>
+                        </div>
+                        
+                        <div class="export-option">
+                            <button id="apple-calendar" class="btn btn-apple">
+                                <span class="btn-icon">🍎</span>
+                                Add to Apple Calendar
+                            </button>
+                            <p class="option-desc">Open in Apple Calendar (macOS/iOS)</p>
+                        </div>
+                        
+                        <div class="export-option">
+                            <button id="outlook-web" class="btn btn-outlook">
+                                <span class="btn-icon">📘</span>
+                                Add to Outlook.com
+                            </button>
+                            <p class="option-desc">Import to Outlook.com calendar</p>
+                        </div>
+                        
+                        <div class="export-option">
+                            <button id="copy-events" class="btn btn-secondary">
+                                <span class="btn-icon">📋</span>
+                                Copy Event Details
+                            </button>
+                            <p class="option-desc">Copy events as text for manual entry</p>
+                        </div>
+                    </div>
+                    
+                    <div class="reset-section">
+                        <button id="reset" class="btn btn-secondary">Upload New File</button>
+                    </div>
                 </div>
             </div>
 
