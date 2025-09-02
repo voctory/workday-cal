@@ -223,14 +223,47 @@ header p {
     font-size: 0.9em;
 }
 
+.view-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 5px;
+    background: var(--bg-light);
+    padding: 5px;
+    border-radius: 8px;
+}
+
+.view-btn {
+    padding: 10px 20px;
+    background: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: all 0.3s ease;
+    color: var(--text-light);
+}
+
+.view-btn:hover {
+    background: var(--border-color);
+}
+
+.view-btn.active {
+    background: var(--secondary-color);
+    color: white;
+}
+
 .selection-controls {
     display: flex;
     gap: 10px;
     align-items: center;
-    margin-bottom: 20px;
-    padding: 15px;
-    background: var(--bg-light);
-    border-radius: 5px;
 }
 
 .selection-count {
@@ -475,6 +508,162 @@ footer a:hover {
     text-decoration: underline;
 }
 
+/* Calendar View Styles */
+.calendar-container {
+    width: 100%;
+}
+
+.term-calendar {
+    margin-bottom: 40px;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.term-calendar-header {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.term-calendar-header h3 {
+    color: var(--primary-color);
+    margin: 0;
+}
+
+.calendar-grid {
+    display: flex;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.time-column {
+    background: var(--bg-light);
+    border-right: 1px solid var(--border-color);
+    min-width: 60px;
+}
+
+.time-cell {
+    height: 30px;
+    padding: 5px;
+    text-align: right;
+    font-size: 0.8em;
+    color: var(--text-light);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.day-column {
+    flex: 1;
+    border-right: 1px solid var(--border-color);
+}
+
+.day-column:last-child {
+    border-right: none;
+}
+
+.calendar-header-cell {
+    height: 40px;
+    padding: 10px;
+    background: var(--primary-color);
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.day-slots {
+    position: relative;
+    background: white;
+}
+
+.grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.course-block {
+    position: absolute;
+    border-radius: 4px;
+    padding: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.course-block:hover {
+    transform: scale(1.02);
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.course-block-info {
+    color: white;
+    font-size: 0.75em;
+    line-height: 1.2;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.course-block-code {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.course-block-time {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.course-block-location {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+.calendar-legend {
+    padding: 15px;
+    background: var(--bg-light);
+    border-radius: 8px;
+}
+
+.calendar-legend h4 {
+    margin: 0 0 10px 0;
+    color: var(--primary-color);
+    font-size: 0.95em;
+}
+
+.legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85em;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.legend-label {
+    color: var(--text-dark);
+}
+
 @media (max-width: 768px) {
     header h1 {
         font-size: 1.8em;
@@ -512,5 +701,22 @@ footer a:hover {
     
     .tutorial-content iframe {
         height: 400px;
+    }
+    
+    /* Calendar mobile styles */
+    .calendar-grid {
+        overflow-x: auto;
+    }
+    
+    .day-column {
+        min-width: 100px;
+    }
+    
+    .course-block-info {
+        font-size: 0.65em;
+    }
+    
+    .legend-items {
+        flex-direction: column;
     }
 }

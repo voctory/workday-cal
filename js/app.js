@@ -6,7 +6,9 @@ class WorkdayCalendarApp {
     constructor() {
         this.parser = new WorkdayParser();
         this.calendar = new CalendarGenerator();
+        this.calendarView = new CalendarView();
         this.courses = [];
+        this.currentView = 'list';
         
         this.initializeElements();
         this.initializeEventListeners();
@@ -29,6 +31,12 @@ class WorkdayCalendarApp {
         this.appleBtn = document.getElementById('apple-calendar');
         this.outlookBtn = document.getElementById('outlook-web');
         this.copyBtn = document.getElementById('copy-events');
+        
+        // View toggle elements
+        this.listViewBtn = document.getElementById('list-view-btn');
+        this.calendarViewBtn = document.getElementById('calendar-view-btn');
+        this.listView = document.getElementById('list-view');
+        this.calendarViewContainer = document.getElementById('calendar-view');
         
         // Track selected courses
         this.selectedCourses = new Set();
@@ -84,6 +92,10 @@ class WorkdayCalendarApp {
         this.resetBtn.addEventListener('click', () => {
             this.reset();
         });
+        
+        // View toggle buttons
+        this.listViewBtn.addEventListener('click', () => this.switchView('list'));
+        this.calendarViewBtn.addEventListener('click', () => this.switchView('calendar'));
         
         // Select all/none buttons
         this.selectAllBtn.addEventListener('click', () => {
@@ -231,6 +243,11 @@ class WorkdayCalendarApp {
         }
         
         this.updateSelectionCount();
+        
+        // Also update calendar view if it's active
+        if (this.currentView === 'calendar') {
+            this.calendarView.render(this.courses);
+        }
     }
     
     determineTerm(course) {
@@ -644,6 +661,27 @@ class WorkdayCalendarApp {
         this.hidePreview();
         this.hideError();
         this.courseList.innerHTML = '';
+    }
+    
+    switchView(view) {
+        this.currentView = view;
+        
+        if (view === 'list') {
+            this.listViewBtn.classList.add('active');
+            this.calendarViewBtn.classList.remove('active');
+            this.listView.style.display = 'block';
+            this.calendarViewContainer.style.display = 'none';
+        } else if (view === 'calendar') {
+            this.listViewBtn.classList.remove('active');
+            this.calendarViewBtn.classList.add('active');
+            this.listView.style.display = 'none';
+            this.calendarViewContainer.style.display = 'block';
+            
+            // Render calendar view
+            if (this.courses.length > 0) {
+                this.calendarView.render(this.courses);
+            }
+        }
     }
 }
 
